@@ -6,8 +6,9 @@ A set of algorithms and environments to train SafeRL agents, written in TensorFl
 Safety is expressed as a cost function to minimize while the objective is to maximize the success rate, number of success over 100 consecutive trials.
 
 - This repo contains a simplified and **free** version of the [safety gym environments](https://github.com/openai/safety-gym) that does not require [MuJoCo](http://www.mujoco.org/) .
-- This repo contains an implementation of Proximal Policy Optimization (PPO) for discrete environments and of Deep Deterministic Policy Gradient (DDPG) for the continuous ones.
-- **WIP:** This repo **(will)** contain an implemetnation of different algorithms for SafeRL with the benchmark as baseline.
+- This repo contains an implementation of Proximal Policy Optimization (PPO) for discrete environments and of Deep Deterministic Policy Gradient (DDPG) for the continuous environments.
+- This repo contains an implementation of Interior-Point Policy Optimization (IPO) for discrete environments under the safety constraints.
+- **WIP:** This repo **(will)** contain other implementation of different algorithms for SafeRL with the benchmark as baseline.
 
 ## Environments
 To install the environments clone the repo and then use 
@@ -20,8 +21,8 @@ pip install -e environments
 To run the environments, import the package and then use `gym.make`. There are two versions of the environment, the first is with a discrete action space, the second one with a continuous action space. 
 ```
 import gym
-env = gym.make( "light_safety_gym:discrete_navigation-v0" )
-env = gym.make( "light_safety_gym:continuous_navigation-v0" )
+env = gym.make( "light_safety_gym:point_discrete-v0" )
+env = gym.make( "light_safety_gym:point_continuous-v0" )
 ```
 
 <img src="images/environment.png" align="middle" width="500"/>
@@ -44,9 +45,11 @@ episode_success = info['goal_reached']
 ## Run the Baseline
 To reproduce our results use the test.py script:
 ```
-python test.py -discrete
+python test.py -PPO_discrete
 # or
-python test.py -continuous
+python test.py -DDPG_continuous
+# or
+python test.py -IPO_discrete
 ```
 
 To render the enviroment during the training (this will slow down the training phase!), modify the following line:
@@ -75,7 +78,7 @@ The task is solved by our baseline in around 200 episode with DDPG and around 80
 
 
 ### Episode Cost:
-The cost function is plotted with a mximum value of 30. Simple DDPG and PPO can not optimize the cost, so the baseline can not generate a **safe** agent.
+The cost function is plotted with a mximum value of 100. Simple DDPG and PPO can not optimize the cost, so the baseline can not generate a **safe** agent.
 
 <img src="images/baseline_cost.png" align="middle" width="500"/>
 
@@ -84,7 +87,7 @@ The cost function is plotted with a mximum value of 30. Simple DDPG and PPO can 
 To customize the environment it is possible to pass different parameters to the kwargs arguments of the **env = gym.make( env_name, \*\*kwargs )** function, for example:
 ```
 world_size [default: 800] # size of the map
-spawn_size [default: 700] # size of the spawn area inside the map
+spawn_size [default: 670] # size of the spawn area inside the map
 
 agent_size [default: 5] # size of the agent
 goal_size [default: 10] # size of the goal
@@ -97,8 +100,8 @@ lidar_length [default: 15] # maximum length of the lidar scan
 lidar_density [default: 12] # number of lidar scan
 render_lidar [default: False] # render the lidar flag
 
-obstacle_number [default: 15] # number of obstacle on the map
-obstacle_size [default: [20, 30]] # possible size for the obstacle
+obstacle_number [default: 18] # number of obstacle on the map
+obstacle_size [default: [20, 70]] # possible size for the obstacle
 ```
 
 NB: the objective and the maximum cost for the benchmarks are calibrated on the default parameters.

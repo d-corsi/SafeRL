@@ -1,0 +1,2 @@
+from light_safety_gym.base_navigation.point_discrete import PointNavigationDiscrete
+from light_safety_gym.base_navigation.point_continuous import PointNavigationContinuous

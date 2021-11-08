@@ -1,4 +1,4 @@
-import gym, abc
+import gym, abc; gym.logger.set_level(40)
 import numpy as np
 
 # This class implements abstract methods
@@ -8,7 +8,7 @@ class BaseNavigation( gym.Env, metaclass=abc.ABCMeta ):
 
 		# Constant definition
 		self.world_size = 800
-		self.spawn_size = 700
+		self.spawn_size = 670
 
 		self.agent_size = 5
 		self.goal_size = 10
@@ -22,8 +22,8 @@ class BaseNavigation( gym.Env, metaclass=abc.ABCMeta ):
 		self.lidar_density = 12
 		self.render_lidar = False
 
-		self.obstacle_number = 15
-		self.obstacle_size = [20, 30]
+		self.obstacle_number = 18
+		self.obstacle_size = [20, 70]
 		self.obstacle_list = []
 
 		# Variables definition
@@ -47,7 +47,7 @@ class BaseNavigation( gym.Env, metaclass=abc.ABCMeta ):
 		self.observation_space = gym.spaces.Box(
 			np.array([-1, 0] + [0 for _ in range(self.lidar_density)]),
 			np.array([ 1, 1] + [1 for _ in range(self.lidar_density)]),
-			dtype=np.float32
+			dtype=np.float64
 		)
 
 		# Internal state of the agent

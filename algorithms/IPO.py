@@ -4,8 +4,8 @@ import tensorflow as tf
 import numpy as np
 import random
 
-class PPO:
-	def __init__(self, env, verbose, render=False):
+class IPO:
+	def __init__(self, env, verbose, cost_limit, render=False):
 		self.env = env
 		self.verbose = verbose
 		self.render = render
@@ -22,10 +22,9 @@ class PPO:
 		self.actor_optimizer = keras.optimizers.Adam()
 		self.critic_optimizer = keras.optimizers.Adam()
 		self.gamma = 0.99
-		self.batch_size = 128
-		self.epoch = 10
-		self.update_step = 5
-		
+		self.batch_size = 500
+		self.cost_limit = cost_limit
+
 		self.run_id = np.random.randint(0, 1000)
 		
 
@@ -41,7 +40,7 @@ class PPO:
 			state = self.env.reset()
 			ep_reward = 0
 			ep_cost = 0
-
+			
 			while True:
 				if self.render: self.env.render()
 
@@ -50,51 +49,41 @@ class PPO:
 				ep_reward += reward		
 				ep_cost += info['state_cost']
 
-				memory_buffer.append([state, action, action_prob, reward, new_state, done])
+				memory_buffer.append([state, action, action_prob, reward, new_state, done, info['state_cost']])
 				if done: break
 				state = new_state
-
-			if(episode % self.update_step == 0): 
-				self.update_networks(np.array(memory_buffer, dtype=object), self.epoch, self.batch_size)
-				memory_buffer.clear()
 
 			success_mean_list.append( info['goal_reached'] )
 			success_list.append( int(np.mean(success_mean_list)*100) )
 			reward_list.append( ep_reward )
 			cost_list.append( ep_cost )
 
+			self.update_networks(np.array(memory_buffer, dtype=object))
+			memory_buffer.clear()
+
 			if self.verbose > 0:
-				print(f"(PPO) Ep: {episode:4}, reward: {ep_reward:6.2f}, success_last_100: {success_list[-1]:3}%, cost_last_100: { np.mean(cost_list[-min(episode, 100):]):5.2f}") 
+				cost_last_100 = np.mean(cost_list[-min(episode, 100):])
+				print(f"(IPO) Ep: {episode:4}, reward: {ep_reward:6.2f}, cost: {ep_cost:3d}, success_last_100: {success_list[-1]:3}%, cost_last_100: { cost_last_100:5.2f}") 
 			if self.verbose > 1: 
-				np.savetxt(f"data/success_PPO_{self.run_id}.txt", success_list)
-				np.savetxt(f"data/cost_PPO_{self.run_id}.txt", cost_list)
+				np.savetxt(f"data/success_IPO_{self.run_id}.txt", success_list)
+				np.savetxt(f"data/cost_IPO_{self.run_id}.txt", cost_list)
 
 
-	def update_networks(self, memory_buffer, epoch, batch_size):
+	def update_networks(self, memory_buffer):
 		# Fix cumulative reward on multiple episodes
-		counter = 0
-		for i in range(len(memory_buffer)):
-			if(memory_buffer[:, 5][i]): 
-				memory_buffer[:, 3][counter:i+1] = [ el for el in self.discount_reward(memory_buffer[:, 3][counter:i+1])]
-				counter = i
+		memory_buffer[:, 3] = [ el for el in self.discount_reward(memory_buffer[:, 3]) ]
+		memory_buffer[:, 6] = [ el for el in self.cumulative_cost_diff(memory_buffer[:, 6]) ]
 
-		batch_size = min(len(memory_buffer), batch_size)
-		mini_batch_n = int(len(memory_buffer) / batch_size)
-		batch_list = np.array_split(memory_buffer, mini_batch_n)
 
-		for _ in range(epoch):
-			for current_batch in batch_list:
-				with tf.GradientTape() as tape_a, tf.GradientTape() as tape_c:
-					objective_function_c = self.critic_objective_function(current_batch) #Compute loss with custom loss function
-					objective_function_a = self.actor_objective_function(current_batch) #Compute loss with custom loss function
+		with tf.GradientTape() as tape_a, tf.GradientTape() as tape_c:
+			objective_function_c = self.critic_objective_function(memory_buffer) #Compute loss with custom loss function
+			objective_function_a = self.actor_objective_function(memory_buffer) #Compute loss with custom loss function
 
-					grads_c = tape_c.gradient(objective_function_c, self.critic.trainable_variables) #Compute gradients critic for network
-					grads_a = tape_a.gradient(objective_function_a, self.actor.trainable_variables) #Compute gradients actor for network
+			grads_c = tape_c.gradient(objective_function_c, self.critic.trainable_variables) #Compute gradients critic for network
+			grads_a = tape_a.gradient(objective_function_a, self.actor.trainable_variables) #Compute gradients actor for network
 
-					self.critic_optimizer.apply_gradients( zip(grads_c, self.critic.trainable_variables) ) #Apply gradients to update network weights
-					self.actor_optimizer.apply_gradients( zip(grads_a, self.actor.trainable_variables) ) #Apply gradients to update network weights
-
-			random.shuffle(batch_list)
+			self.critic_optimizer.apply_gradients( zip(grads_c, self.critic.trainable_variables) ) #Apply gradients to update network weights
+			self.actor_optimizer.apply_gradients( zip(grads_a, self.actor.trainable_variables) ) #Apply gradients to update network weights
 
 
 	def discount_reward(self, rewards):
@@ -112,6 +101,12 @@ class PPO:
 		discounted_rewards = (discounted_rewards - np.mean(discounted_rewards)) / (np.std(discounted_rewards) + eps)
 
 		return discounted_rewards
+
+	
+	def cumulative_cost_diff(self, costs):
+		cost_diff = sum(costs) - self.cost_limit
+		trajectory_cost_diff = np.array([ cost_diff for _ in costs ])
+		return trajectory_cost_diff
 
 
 	##########################
@@ -132,8 +127,6 @@ class PPO:
 		# Extract values from buffer
 		state = np.vstack(memory_buffer[:, 0])
 		discounted_reward = np.vstack(memory_buffer[:, 3])
-		new_state = np.vstack(memory_buffer[:, 4])
-		done = np.vstack(memory_buffer[:, 5])
 
 		predicted_value = self.critic(state)
 		target = discounted_reward
@@ -159,8 +152,7 @@ class PPO:
 		action = memory_buffer[:, 1]
 		action_prob = np.vstack(memory_buffer[:, 2])
 		discounted_reward = np.vstack(memory_buffer[:, 3])
-		new_state = np.vstack(memory_buffer[:, 4])
-		done = np.vstack(memory_buffer[:, 5])
+		trajectory_cost = np.vstack(memory_buffer[:, 6])
 
 		baseline = self.critic(state)
 		adv = discounted_reward - baseline # Advantage = MC - baseline
@@ -174,9 +166,15 @@ class PPO:
 		clip_val = 0.2
 		obj_1 = r_theta * adv
 		obj_2 = tf.clip_by_value(r_theta, 1-clip_val, 1+clip_val) * adv
-		partial_objective = tf.math.minimum(obj_1, obj_2)
+		partial_objective_reward = tf.math.minimum(obj_1, obj_2)
+		
+		eps = np.finfo(np.float64).eps.item()
+		trajectory_cost_diff = max( -np.mean(trajectory_cost), eps )
+		barrier_function = tf.math.log(prob) * trajectory_cost_diff / 40
+		
+		ipo_objective = tf.add(partial_objective_reward, barrier_function)
 
-		return -tf.math.reduce_mean(partial_objective)
+		return -tf.math.reduce_mean(ipo_objective)
 	
 		
 	def get_actor_model_disc(self, input_shape, output_size):

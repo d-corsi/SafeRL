@@ -1,8 +1,8 @@
-from light_safety_gym.point_navigation.base_navigation import BaseNavigation
+from light_safety_gym.base_navigation.base_navigation import BaseNavigation
 import gym
 import numpy as np
 
-class ContinuousNavigation( BaseNavigation ):
+class PointNavigationContinuous( BaseNavigation ):
 
 
 	def __init__(self, **kwargs):
@@ -16,7 +16,7 @@ class ContinuousNavigation( BaseNavigation ):
 				setattr(self, key, value)
 
 		# Definition of the continuous gym action space
-		self.action_space = gym.spaces.Box( np.array([-self.angular_velocity, 0]), np.array([self.angular_velocity, self.max_linear_velocity]))
+		self.action_space = gym.spaces.Box( np.array([-self.angular_velocity, 0]), np.array([self.angular_velocity, self.max_linear_velocity]) )
 
 
 	def perform_action(self, action):

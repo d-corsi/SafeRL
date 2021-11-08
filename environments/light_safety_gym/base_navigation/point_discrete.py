@@ -1,8 +1,8 @@
-from light_safety_gym.point_navigation.base_navigation import BaseNavigation
+from light_safety_gym.base_navigation.base_navigation import BaseNavigation
 import gym
 import numpy as np
 
-class DiscreteNavigation( BaseNavigation ):
+class PointNavigationDiscrete( BaseNavigation ):
 
 
 	def __init__(self, **kwargs):
