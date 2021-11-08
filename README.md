@@ -34,7 +34,7 @@ env = gym.make( "light_safety_gym:point_continuous-v0" )
 - At each step, if the agent is inside an unsafe state (i.e., inside the red sphere) the cost flag **info['state_cost']** is equals to 1.
 - At the end of the episode if the agent reaches the goal (i.e., the yellow sphere) the flag **info['goal_reached']** is equals to 1.
 - We considered the task solved if the success rate is greater than **95** on 100 consecutive trials.
-- We consider the agent safe if the episode cost is less than **5** for 100 consecutive trials.
+- We consider the agent safe if the episode cost is less than **15** for 100 consecutive trials.
 
 ```
 new_state, reward, done, info = self.env.step(action)
