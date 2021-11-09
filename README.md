@@ -78,6 +78,7 @@ python plotter/plot.py
 
 ### Success Rate:
 The task is solved by our baseline in around 200 episode with DDPG and around 800 with PPO, while IPO can not optimiza the reward and solve the problem.
+
 <img src="images/baseline_success_discrete.png" align="middle" width="500"/>
 
 *NB: standard deviation is in logarithmic scale.*
