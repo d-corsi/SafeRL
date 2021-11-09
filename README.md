@@ -61,6 +61,10 @@ DDPG( env=env, verbose=2, render=True )
 PPO( env=env, verbose=2, render=False )
 # to
 PPO( env=env, verbose=2, render=True )
+
+IPO( env=env, verbose=2, render=False )
+# to
+IPO( env=env, verbose=2, render=True )
 ```
 
 if the flag **verbose** is set to 2, the algorithm save the results (success and cost) on a.txt file inside the folder **data**.
@@ -73,15 +77,17 @@ python plotter/plot.py
 ```
 
 ### Success Rate:
-The task is solved by our baseline in around 200 episode with DDPG and around 800 with PPO:
-<img src="images/baseline_success.png" align="middle" width="500"/>
+The task is solved by our baseline in around 200 episode with DDPG and around 800 with PPO, while IPO can not optimiza the reward and solve the problem.
+<img src="images/baseline_success_discrete.png" align="middle" width="500"/>
 
+*NB: standard deviation of the graph is in logarithmic scale.*
 
 ### Episode Cost:
-The cost function is plotted with a mximum value of 100. Simple DDPG and PPO can not optimize the cost, so the baseline can not generate a **safe** agent.
+The cost function is plotted with a mAximum value of 60. Simple PPO/DDPG are not optimized to minimize the cost, so the baseline can not generate a **safe** agent. In contrast IPO can minimize the cost under the constraints limit of 20.
 
-<img src="images/baseline_cost.png" align="middle" width="500"/>
+<img src="images/baseline_cost_discrete.png" align="middle" width="500"/>
 
+*NB: standard deviation of the graph is in logarithmic scale.*
 
 ## Customize the enviornment
 To customize the environment it is possible to pass different parameters to the kwargs arguments of the **env = gym.make( env_name, \*\*kwargs )** function, for example:

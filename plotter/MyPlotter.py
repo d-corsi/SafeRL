@@ -62,6 +62,18 @@ class MyPlotter():
 		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
 		plt.show()
 
+	
+	def render_std_log(self, labels, colors):
+		err_msg = "load some data before the render!"
+		assert self.array_len > 0, err_msg
+
+		for mean_values, var_values, label, color in zip(self.mean_array, self.var_array, labels, colors):
+			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle='-', linewidth=1.2 )
+			self.ax.fill_between(self.x_axes, mean_values+np.log(var_values), mean_values-np.log(var_values), facecolor=color, alpha=0.3)
+
+		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
+		plt.show()
+
 
 	def process_data(self, rolling_window=1, starting_pointer=0, early_stop=None):		
 		rolling_queue = deque(maxlen=rolling_window)
