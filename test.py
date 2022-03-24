@@ -4,34 +4,37 @@ import gym, sys
 
 
 # Load the PPO algorithm for discrete action space and start the training
-def main_discrete_PPO():
-	from algorithms.PPO import PPO
+def main_discrete_PPO( env, verbose=1, episodes=5000, render=False ):
+	from algos.PPO import PPO
 
-	env = gym.make( "light_safety_gym:point_discrete-v0" )
-	learner = PPO( env=env, verbose=2, render=False )
-	learner.loop( 5000 )
+	learner = PPO( env=env, verbose=verbose, render=render )
+	learner.loop( episodes )
 
 
 # Load the IPO algorithm for discrete action space and start the training
-def main_discrete_IPO():
-	from algorithms.IPO import IPO
+def main_discrete_IPO( env, verbose=1, episodes=5000, render=False ):
+	from algos.IPO import IPO
 
-	env = gym.make( "light_safety_gym:point_discrete-v0" )
-	learner = IPO( env=env, verbose=2, cost_limit=20, render=False )
-	learner.loop( 5000 )
+	learner = IPO( env=env, verbose=verbose, cost_limit=15, render=render )
+	learner.loop( episodes )
 
 
-# Load the DDPG algorithm for continuous action space and start the training
-def main_continuous_DDPG():
-	from algorithms.DDPG import DDPG
-	env = gym.make( "light_safety_gym:point_continuous-v0" )
-	learner = DDPG( env=env, verbose=2, render=False )
-	learner.loop( 5000 )
+# Load the Lagrangian PPO algorithm for discrete action space and start the training
+def main_discrete_Lagrangian( env, verbose=1, episodes=5000, render=False ):
+	from algos.Lagrangian import Lagrangian
+
+	learner = Lagrangian( env=env, verbose=verbose, cost_limit=15, render=render )
+	learner.loop( episodes )
 
 
 # Parse the input command and run the correct function
 if __name__ == "__main__":
-	if (sys.argv[1] == "-PPO_discrete"): main_discrete_PPO()
-	elif (sys.argv[1] == "-IPO_discrete"): main_discrete_IPO()
-	elif (sys.argv[1] == "-DDPG_continuous"): main_continuous_DDPG()
-	else: raise ValueError(f"Invalid command: '{sys.argv[1]}' (options: [-PPO_discrete, -IPO_discrete, -DDPG_continuous])")
+	env = gym.make( "light_safety_gym:point_discrete-v0" )
+	main_discrete_PPO( env, verbose=1, episodes=5000 )
+	main_discrete_Lagrangian( env, verbose=1, episodes=5000 )
+	quit()
+
+	if (sys.argv[1] == "-PPO"): main_discrete_PPO()
+	elif (sys.argv[1] == "-IPO"): main_discrete_IPO()
+	elif (sys.argv[1] == "-Lagr"): main_discrete_Lagrangian()
+	else: raise ValueError(f"Invalid command: '{sys.argv[1]}' (options: [-PPO, -IPO, -Lagr])")

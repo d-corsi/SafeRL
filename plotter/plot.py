@@ -1,21 +1,16 @@
-from MyPlotter import MyPlotter
+from reinforcement_plotter import ReinforcementPlotter
 import glob
 
+data = [
+		glob.glob("data/PPO_32*.csv"),
+		glob.glob("data/PPO_16*.csv"),
+		glob.glob("data/PPO_8*.csv")
+]
+
+data = [ glob.glob("data/PPO*nod16*.csv") ]
 
 # Plot The Results
-plotter = MyPlotter( x_label="episode", y_label="success (%)", title="Success Rate" )
-plotter.load_array([
-		glob.glob("data/success_IPO_*.txt"),
-		glob.glob("data/success_PPO_*.txt")
-])
-plotter.process_data( rolling_window=500, starting_pointer=100 )
-plotter.render_std_log( labels=["IPO", "PPO"], colors=["r", "g"] )
-
-# Plot The Results
-plotter = MyPlotter( x_label="episode", y_label="cost", title="Episode Cost", cap=60  )
-plotter.load_array([
-		glob.glob("data/cost_IPO_*.txt"),
-		glob.glob("data/cost_PPO_*.txt")
-])
-plotter.process_data( rolling_window=500, starting_pointer=100 )
-plotter.render_std_log( labels=["IPO", "PPO"], colors=["r", "g"] )
+plotter = ReinforcementPlotter( x_label="episode", y_label="seccess", title="Network Size Comparison" )
+plotter.load_array( data, key="success", ref_line=1 )
+plotter.process_data( rolling_window=100 )
+plotter.render_std( labels=["PPO (8x2)"], colors=["c"], styles=['-', '-', '-'] )

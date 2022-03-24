@@ -1,9 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 from collections import deque
+import warnings; warnings.filterwarnings("ignore")
 
-class MyPlotter():
-	def __init__(self, x_label="X Label", y_label="Y Label", title="No Title", cap=None):
+class ReinforcementPlotter():
+
+	def __init__( self, x_label="X Label", y_label="Y Label", title="", cap=None ):
+
 		self.fig, self.ax = plt.subplots(1)
 		self.ax.spines["top"].set_visible(False)    
 		self.ax.spines["bottom"].set_visible(False)    
@@ -32,50 +36,59 @@ class MyPlotter():
 		self.cap = cap
 
 	
-	def load_array(self, file_name_arrays, early_stop=None):
-		data_arrays = [[np.loadtxt(name, delimiter='\n', unpack=True) for name in array_set] for array_set in file_name_arrays]
+	def load_array( self, file_name_arrays, key="reward", ref_line=None, early_stop=None ):
+
+		data_arrays = []
+
+		for array_set in file_name_arrays:
+			data_arrays.append([])
+			for name in array_set:
+				data_arrays[-1].append([])
+				with open(name) as csv_file:
+					csv_reader = csv.reader(csv_file, delimiter=',')
+					for line, row in enumerate(csv_reader):
+						if line == 0: 
+							try:
+								key_index = row.index(key) 
+							except Exception: 
+								print( f"Requested key not in the CSV! options: {row}")
+								quit()
+							continue
+						data_arrays[-1][-1].append( float(row[key_index]) )
+				data_arrays[-1][-1] = np.array(data_arrays[-1][-1])
+
 		if(early_stop == None): self.array_len = min([min([len(el) for el in array_set]) for array_set in data_arrays])
 		else: self.array_len = early_stop
 		self.data_arrays = np.array([[el[:self.array_len] for el in array_set] for array_set in data_arrays], dtype=object)
 
-
-	def render(self, labels, colors):
-		err_msg = "load some data before the render!"
-		assert self.array_len > 0, err_msg
-
-		for mean_values, max_values, min_values, label, color in zip(self.mean_array, self.max_array, self.min_array, labels, colors):
-			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle='-', linewidth=1.2 )
-			self.ax.fill_between(self.x_axes, max_values, min_values, facecolor=color, alpha=0.3)
-
-		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
-		plt.show()
+		if ref_line is not None: plt.axhline(y=ref_line, color='r', linestyle='--', linewidth=0.7 )
 
 	
-	def render_std(self, labels, colors):
+	def render_std( self, labels, colors, styles ):
 		err_msg = "load some data before the render!"
 		assert self.array_len > 0, err_msg
 
-		for mean_values, var_values, label, color in zip(self.mean_array, self.var_array, labels, colors):
-			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle='-', linewidth=1.2 )
+		for mean_values, var_values, label, color, style in zip(self.mean_array, self.var_array, labels, colors, styles):
+			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle=style, linewidth=1.2 )
 			self.ax.fill_between(self.x_axes, mean_values+var_values, mean_values-var_values, facecolor=color, alpha=0.3)
 
 		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
 		plt.show()
 
 	
-	def render_std_log(self, labels, colors):
+	def render_std_log( self, labels, colors, styles ):
 		err_msg = "load some data before the render!"
 		assert self.array_len > 0, err_msg
 
-		for mean_values, var_values, label, color in zip(self.mean_array, self.var_array, labels, colors):
-			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle='-', linewidth=1.2 )
+		for mean_values, var_values, label, color, style in zip(self.mean_array, self.var_array, labels, colors, styles):
+			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle=style, linewidth=1.2 )
 			self.ax.fill_between(self.x_axes, mean_values+np.log(var_values), mean_values-np.log(var_values), facecolor=color, alpha=0.3)
 
 		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
 		plt.show()
 
 
-	def process_data(self, rolling_window=1, starting_pointer=0, early_stop=None):		
+	def process_data( self, rolling_window=1, starting_pointer=0 ):		
 		rolling_queue = deque(maxlen=rolling_window)
 		self.x_axes = [i for i in range(self.array_len-starting_pointer)]
 

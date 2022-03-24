@@ -107,7 +107,7 @@ lidar_length [default: 15] # maximum length of the lidar scan
 lidar_density [default: 12] # number of lidar scan
 render_lidar [default: False] # render the lidar flag
 
-obstacle_number [default: 18] # number of obstacle on the map
+obstacle_number [default: 20] # number of obstacle on the map
 obstacle_size [default: [20, 70]] # possible size for the obstacle
 ```
 

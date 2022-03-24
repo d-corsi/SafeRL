@@ -63,7 +63,7 @@ class IPO:
 
 			if self.verbose > 0:
 				cost_last_100 = np.mean(cost_list[-min(episode, 100):])
-				print(f"(IPO) Ep: {episode:4}, reward: {ep_reward:6.2f}, cost: {ep_cost:3d}, success_last_100: {success_list[-1]:3}%, cost_last_100: { cost_last_100:5.2f}") 
+				print(f"(IPO) Ep: {episode:4}, reward: {ep_reward:6.2f}, success_last_100: {success_list[-1]:3}%, cost_last_100: { cost_last_100:5.2f}") 
 			if self.verbose > 1: 
 				np.savetxt(f"data/success_IPO_{self.run_id}.txt", success_list)
 				np.savetxt(f"data/cost_IPO_{self.run_id}.txt", cost_list)

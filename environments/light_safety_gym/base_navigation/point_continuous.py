@@ -20,6 +20,7 @@ class PointNavigationContinuous( BaseNavigation ):
 
 
 	def perform_action(self, action):
+		
 		# Perform the actions
 		self.agent_angle += action[0]
 

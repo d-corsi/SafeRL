@@ -10,24 +10,24 @@ class BaseNavigation( gym.Env, metaclass=abc.ABCMeta ):
 		self.world_size = 800
 		self.spawn_size = 670
 
-		self.agent_size = 5
-		self.goal_size = 10
+		self.agent_size = 15
+		self.goal_size = 25
 
-		self.max_linear_velocity = 5
-		self.min_linear_velocity = 2
-		self.angular_velocity = 0.3
+		self.max_linear_velocity = 10
+		self.min_linear_velocity = 4
+		self.angular_velocity = 0.5
 
 		self.lidar_sphere = 3
 		self.lidar_length = 15 
 		self.lidar_density = 12
 		self.render_lidar = False
 
-		self.obstacle_number = 18
-		self.obstacle_size = [20, 70]
+		self.obstacle_number = 20
+		self.obstacle_size = [30, 70]
 		self.obstacle_list = []
 
 		# Variables definition
-		self.max_step = 400
+		self.max_step = 250
 		self.episode_step = 0
 		self.old_distance = 0
 
@@ -134,8 +134,11 @@ class BaseNavigation( gym.Env, metaclass=abc.ABCMeta ):
 		self.perform_action( action )
 
 		# Compute reward function and update the old distance for the reward computation
-		reward += 0.01 if (self.old_distance > self.get_distance(self.agent_position, self.goal_position)) else -0.01
-		self.old_distance = self.get_distance(self.agent_position, self.goal_position)
+		#reward += 0.01 if (self.old_distance > self.get_distance(self.agent_position, self.goal_position)) else -0.01
+		#self.old_distance = self.get_distance(self.agent_position, self.goal_position)
+		new_distance = self.get_distance(self.agent_position, self.goal_position)
+		reward = (self.old_distance - new_distance) * 0.01;
+		self.old_distance = new_distance
 
 		# Check for goal collision
 		for obstacle_def in self.obstacle_list:
@@ -149,7 +152,11 @@ class BaseNavigation( gym.Env, metaclass=abc.ABCMeta ):
 			reward = 1
 
 		# Check for the max step
-		if self.episode_step > self.max_step:
+		if self.episode_step >= self.max_step:
+			done = True
+
+		# Check outside limit:
+		if max(self.agent_position) > self.world_size or min(self.agent_position) < 0:
 			done = True
 
 		# Call the state normalizer function and other gym requirements

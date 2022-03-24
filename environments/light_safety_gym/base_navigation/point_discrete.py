@@ -20,6 +20,7 @@ class PointNavigationDiscrete( BaseNavigation ):
 
 	
 	def perform_action(self, action):
+		
 		# Perform the actions
 		self.agent_angle += self.actions[action][0]
 
