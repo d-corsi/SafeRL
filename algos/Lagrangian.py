@@ -38,11 +38,15 @@ class Lagrangian( ReinforcementLearning ):
 		self.gamma = 0.99
 		self.trajectory_update = 5
 		self.trajectory_mean = False
+		self.lagrangian_var = 1
+		self.cost_limit = 50
 
 		# 
 		self.relevant_params = {
 			'gamma' : 'gamma',
-			'trajectory_update' : 'tu'
+			'trajectory_update' : 'tu',
+			'lagrangian_var' : 'lambda',
+			'cost_limit' : 'climit'
 		}
 
 		# Override the default parameters with kwargs
@@ -51,8 +55,7 @@ class Lagrangian( ReinforcementLearning ):
 				setattr(self, key, value)
 
 		self.memory_buffer = deque( maxlen=self.memory_size )
-		self.lagrangian_var = 0
-		self.cost_limit = 50
+		
 
 
 	# Mandatory method to implement for the ReinforcementLearning class, decide the 
@@ -72,28 +75,29 @@ class Lagrangian( ReinforcementLearning ):
 	# Application of the gradient with TensorFlow and based on the objective function
 	def update_networks( self, memory_buffer ):
 
-		"""
+		
 		# Extract values from buffer for the advantage computation
-		cost = np.vstack(memory_buffer[:, 6])
+		cost = memory_buffer[:, 6]
+		done = np.vstack(memory_buffer[:, 5])
+
+		end_trajectories = np.where(done == True)[0]
 
 		#
 		trajectory_cost = []
 		counter = 0
 		for i in end_trajectories:
-			trajectory_cost( sum(cost[counter : i+1]) )
+			trajectory_cost.append( sum(cost[counter : i+1]) )
 			counter = i+1
 
 		# Lagrangian variable update (simulation of 1-variable gradient step)
-		# simulation of a SGD with a fixed learning rate of 0.1
-		cost_barrier = mean(trajectory_cost) - self.cost_limit
-		if cost_barrier <= 0: self.lagrangian_var -= 0.1
-		else: self.lagrangian_var += 0.1
+		# simulation of a SGD with a fixed learning rate of 0.05
+		cost_barrier = np.mean(trajectory_cost) - self.cost_limit
+		if cost_barrier <= 0: self.lagrangian_var -= 0.05
+		else: self.lagrangian_var += 0.05
 		
-
 		# Limit of the lagrangian multiplier >= 0
 		if self.lagrangian_var < 0: self.lagrangian_var = 0
-		"""
-
+		
 		# Actor update (repeated 1 time for each call):
 		with tf.GradientTape() as actor_tape:
 			

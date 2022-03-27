@@ -103,6 +103,7 @@ class ReinforcementLearning( metaclass=abc.ABCMeta ):
 				print( f"reward: {logger_dict['reward'][-1]:5.2f} (last_100: {np.mean(reward_last_100):5.2f})", end=" " )
 				print( f"cost_last_100: {int(np.mean(cost_last_100)):3d}", end=" " )
 				print( f"step_last_100 {int(np.mean(step_last_100)):3d}", end=" " )
+				print( f"lambda {self.lagrangian_var:4.2f}", end=" " )
 				print( f"success_last_100 {int(np.mean(success_last_100)*100):4d}%" )
 
 			# Log all the results, depending on the <verbose> parameter
