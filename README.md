@@ -1,14 +1,14 @@
 ### Disclaimer:
-This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file.
+This is a **work in progress repo**, there may be bugs in the code and typos in the README file.
 
 # SafeRL
 A set of algorithms and environments to train SafeRL agents, written in TensorFlow2 and OpenAI Gym.
-Safety is expressed as a cost function to minimize while the objective is to maximize the success rate, number of success over 100 consecutive trials.
+Safety is expressed as a cost function to minimize while the objective is to maximize the success rate (i.e., number of success over 100 consecutive trials).
 
 - This repo contains a simplified and **free** version of the [safety gym environments](https://github.com/openai/safety-gym) that does not require [MuJoCo](http://www.mujoco.org/) .
-- This repo contains an implementation of Proximal Policy Optimization (PPO) for discrete environments and of Deep Deterministic Policy Gradient (DDPG) for the continuous environments.
-- This repo contains an implementation of Interior-Point Policy Optimization (IPO) for discrete environments under the safety constraints.
-- **WIP:** This repo **(will)** contain other implementation of different algorithms for SafeRL with the benchmark as baseline.
+- This repo contains an implementation of Proximal Policy Optimization (PPO).
+- This repo contains an implementation of Lagrangian Proximal Policy Optimization (LagPPO) under the safety constraints.
+
 
 ## Environments
 To install the environments clone the repo and then use 
@@ -22,7 +22,6 @@ To run the environments, import the package and then use `gym.make`. There are t
 ```
 import gym
 env = gym.make( "light_safety_gym:point_discrete-v0" )
-env = gym.make( "light_safety_gym:point_continuous-v0" )
 ```
 
 <img src="images/environment.png" align="middle" width="500"/>
@@ -45,26 +44,20 @@ episode_success = info['goal_reached']
 ## Run the Baseline
 To reproduce our results use the test.py script:
 ```
-python test.py -PPO_discrete
+python test.py -PPO
 # or
-python test.py -DDPG_continuous
-# or
-python test.py -IPO_discrete
+python test.py -LagPPO
 ```
 
 To render the enviroment during the training (this will slow down the training phase!), modify the following line:
 ```
-DDPG( env=env, verbose=2, render=False )
-# to
-DDPG( env=env, verbose=2, render=True )
-
 PPO( env=env, verbose=2, render=False )
 # to
 PPO( env=env, verbose=2, render=True )
 
-IPO( env=env, verbose=2, render=False )
+LagPPO( env=env, verbose=2, render=False )
 # to
-IPO( env=env, verbose=2, render=True )
+LagPPO( env=env, verbose=2, render=True )
 ```
 
 if the flag **verbose** is set to 2, the algorithm save the results (success and cost) on a.txt file inside the folder **data**.
@@ -120,4 +113,4 @@ NB: the objective and the maximum cost for the benchmarks are calibrated on the 
 ## License
 
 - **MIT license**
-- Copyright 2021 © **Davide Corsi**.
+- Copyright 2022 © **Davide Corsi**.
